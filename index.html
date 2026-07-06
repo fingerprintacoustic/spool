@@ -6,6 +6,7 @@
 <title>SPOOL — Bring your own reel.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg: #14151A;
@@ -246,33 +247,33 @@
     <p class="lede">One subscription for creators, direct payment for buyers, no cut taken from your sales.</p>
     <div class="cols">
       <div class="col">
-        <div class="tag mono">For creators</div>
-        <h3>List for a flat monthly fee</h3>
-        <p>Pay one subscription to keep your shelf space. No per-sale commission — whatever a buyer pays, it goes straight to you.</p>
+        <div class="tag mono">For creators — sharing free</div>
+        <h3>Free, up to 50 listings</h3>
+        <p>Not charging buyers anything? List up to 50 reels at no cost. This tier is for sharing, not selling.</p>
         <ul>
           <li>Link YouTube, Vimeo, Drive, or Zoom recordings</li>
-          <li>Direct file uploads coming soon, once added moderation tooling is in place</li>
-          <li>Set your own price and payment link</li>
+          <li>Optional private access code per listing</li>
+          <li>No PayPal setup required</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="tag mono">For creators — selling</div>
+        <h3>$5/month, unlimited</h3>
+        <p>Charging buyers for your work? This tier covers unlimited listings, billed through PayPal. No commission on top — whatever a buyer pays, it's yours.</p>
+        <ul>
+          <li>Unlimited listings, priced however you like</li>
+          <li>Buyers pay you directly via your own PayPal</li>
+          <li>Cancel anytime</li>
         </ul>
       </div>
       <div class="col">
         <div class="tag mono">For buyers</div>
-        <h3>Pay creators directly</h3>
-        <p>Every listing links straight to the creator's own checkout — their PayPal.Me link or PayPal invoice. SPOOL never touches the money.</p>
+        <h3>Always free to browse and buy</h3>
+        <p>SPOOL never charges buyers a platform fee. Every listing links straight to the creator's own PayPal. SPOOL never touches the money.</p>
         <ul>
           <li>Preview before you buy</li>
-          <li>Instant access on payment, handled by the creator</li>
+          <li>Some listings may require an access code from the creator</li>
           <li>Support the person who made it, directly</li>
-        </ul>
-      </div>
-      <div class="col">
-        <div class="tag mono">Platform fee</div>
-        <h3>How SPOOL earns</h3>
-        <p>We charge creators a monthly subscription, billed through PayPal, to be listed and marketed on the row. Submissions are screened automatically and most get an instant decision.</p>
-        <ul>
-          <li>Starter — $9/mo, up to 5 active listings</li>
-          <li>Pro — $24/mo, unlimited listings + featured placement</li>
-          <li>Cancel anytime; listings pause if a sub lapses</li>
         </ul>
       </div>
     </div>
@@ -288,12 +289,20 @@
   <div class="form-card" id="formCard">
     <form id="listForm">
       <div class="field">
+        <label>Your name</label>
+        <input type="text" id="creatorName" placeholder="How you'll appear as the creator" required>
+      </div>
+      <div class="field">
+        <label>Your email</label>
+        <input type="email" id="creatorEmail" placeholder="Used to identify your account — not shown publicly" required>
+      </div>
+      <div class="field">
         <label>Title</label>
-        <input type="text" placeholder="e.g. Acoustic worship session — live in Harare" required>
+        <input type="text" id="titleField" placeholder="e.g. Acoustic worship session — live in Harare" required>
       </div>
       <div class="field">
         <label>Description</label>
-        <textarea placeholder="What is this, and who is it for?" required></textarea>
+        <textarea id="descField" placeholder="What is this, and who is it for?" required></textarea>
       </div>
       <div class="field">
         <label>Category</label>
@@ -316,21 +325,41 @@
         </div>
         <p style="font-size:12px; color:var(--text-muted); margin:-6px 0 14px;">Direct uploads are coming soon — for now, link out to YouTube, Vimeo, Google Drive, or a Zoom recording. This keeps hosting and content review with platforms that already handle it.</p>
         <div class="source-input active" id="linkInput">
-          <input type="text" placeholder="YouTube, Vimeo, Google Drive, or Zoom recording link">
+          <input type="text" id="sourceUrlField" placeholder="YouTube, Vimeo, Google Drive, or Zoom recording link">
         </div>
       </div>
 
       <div class="field">
-        <label>Your price (buyer pays you directly)</label>
-        <input type="text" placeholder="e.g. $12">
+        <label>Will you charge buyers for this?</label>
+        <div class="source-toggle" id="monetizeToggle">
+          <button type="button" class="active" data-monetize="free">No — free to view (Free tier)</button>
+          <button type="button" data-monetize="paid">Yes — buyers pay me ($5/mo tier)</button>
+        </div>
       </div>
+
       <div class="field">
-        <label>Your PayPal.Me link (or other payment link)</label>
-        <input type="text" placeholder="e.g. paypal.me/yourname">
+        <label>Price (only if buyers pay)</label>
+        <input type="text" id="priceField" placeholder="e.g. $12" disabled>
+      </div>
+      <div class="field" id="paypalField" style="display:none;">
+        <label>Your PayPal link</label>
+        <input type="text" id="paypalLinkField" placeholder="Where buyers go to pay you">
+      </div>
+
+      <div class="field">
+        <label>Access</label>
+        <div class="source-toggle" id="accessToggle">
+          <button type="button" class="active" data-access="public">Public — anyone can view</button>
+          <button type="button" data-access="private">Private — requires an access code</button>
+        </div>
+        <div id="accessCodeInput" style="display:none; margin-top:10px;">
+          <input type="text" id="accessCodeField" placeholder="Set an access code to share privately with people you approve">
+          <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">You share this code yourself with whoever you want to have access — SPOOL doesn't distribute it for you.</p>
+        </div>
       </div>
 
       <div class="form-foot">
-        <p class="fee-note">Most submissions get an instant automated decision — approved or rejected in seconds. A small number flagged as uncertain wait briefly for a quick human look. Once approved, activate your subscription (Starter $9/mo or Pro $24/mo) via PayPal. No commission is ever taken from your sale price.</p>
+        <p class="fee-note">Free tier: up to 50 listings, no charge, as long as you're not charging buyers. Charging buyers switches you to $5/mo unlimited, billed via PayPal. Most submissions get an instant automated decision.</p>
         <button type="submit" class="btn btn-teal">Submit listing</button>
       </div>
     </form>
@@ -357,22 +386,35 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// --- SPOOL: connected to Supabase ---
+// Replace EDGE_FUNCTIONS_URL below if your project ref ever changes.
+const SUPABASE_URL = "https://zxvrusoaxlqvomlssdlo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zrK-fFvg6uxATGtj3G0SWw_0tEyyX7z";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
 const categories = ["All","Music Videos","Worship Sessions","Short Films","Tutorials","Podcasts & Audio","Sermons & Talks","Behind the Scenes"];
 
-const listings = [
-  {title:"Acoustic Worship — Live Session", creator:"Fingerprint Acoustic", price:"$8", cat:"Worship Sessions", src:"YouTube"},
-  {title:"Shona Praise Medley", creator:"Fingerprint Acoustic", price:"$6", cat:"Music Videos", src:"Drive"},
-  {title:"Building a Mesh File-Transfer App", creator:"J. Dev", price:"$15", cat:"Tutorials", src:"Drive"},
-  {title:"Sunday Sermon: Rooted", creator:"Grace Chapel", price:"$0", cat:"Sermons & Talks", src:"Zoom"},
-  {title:"Ndebele Hymn Sessions Vol. 2", creator:"Fingerprint Acoustic", price:"$10", cat:"Worship Sessions", src:"YouTube"},
-  {title:"Studio Diary: Recording the EP", creator:"Fingerprint Acoustic", price:"$5", cat:"Behind the Scenes", src:"Drive"},
-  {title:"Short Film: Homecoming", creator:"M. Ncube", price:"$12", cat:"Short Films", src:"Vimeo"},
-  {title:"The Indie Dev Podcast Ep. 14", creator:"J. Dev", price:"$3", cat:"Podcasts & Audio", src:"Drive"},
-  {title:"Worship Night — Full Recording", creator:"Grace Chapel", price:"$7", cat:"Worship Sessions", src:"Zoom"},
-  {title:"Loop Pedal Techniques", creator:"Fingerprint Acoustic", price:"$9", cat:"Tutorials", src:"Drive"},
-  {title:"English Praise Session — Piano & Voice", creator:"Fingerprint Acoustic", price:"$8", cat:"Music Videos", src:"YouTube"},
-  {title:"Behind the Scenes: BiteDash Launch", creator:"J. Dev", price:"$4", cat:"Behind the Scenes", src:"Drive"},
-];
+let listings = []; // populated from Supabase on load
+
+async function loadListings(){
+  const { data, error } = await sb.from('public_listings_view').select('*').order('created_at', { ascending: false });
+  if (error) {
+    console.error('Failed to load listings:', error);
+    listings = [];
+  } else {
+    listings = data.map(row => ({
+      id: row.id,
+      title: row.title,
+      creator: row.creator_id, // display name resolved separately if you join creators later
+      price: row.is_monetized ? row.price : '$0',
+      cat: row.category,
+      src: row.source_type,
+      isPrivate: row.is_private,
+    }));
+  }
+  renderGrid();
+}
 
 const spineColors = ["#7B4B2A","#4A5A3C","#3A4A5C","#5C3A4A","#4A3A5C","#5C4A2A","#2A4A4A","#4A2A2A"];
 
@@ -401,12 +443,24 @@ function renderGrid(){
   grid.innerHTML = '';
   const filtered = activeCat === 'All' ? listings : listings.filter(l => l.cat === activeCat);
   document.getElementById('resultCount').textContent = filtered.length + (filtered.length === 1 ? ' reel' : ' reels');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:50px 20px; color:var(--text-muted);">
+        <p style="font-size:16px; margin-bottom:8px;">The shelf's empty here — for now.</p>
+        <p style="font-size:14px; margin-bottom:20px;">Be the first to list something on the row.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('list').scrollIntoView({behavior:'smooth'})">List your work</button>
+      </div>
+    `;
+    return;
+  }
+
   filtered.forEach(item => {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
       <div class="card-thumb">
-        <span class="badge">${item.src}</span>
+        <span class="badge">${item.src}${item.isPrivate ? ' 🔒' : ''}</span>
         <div class="play">▶</div>
       </div>
       <div class="card-body">
@@ -414,7 +468,7 @@ function renderGrid(){
         <div class="creator">${item.creator}</div>
         <div class="card-foot">
           <span class="price">${item.price === '$0' ? 'FREE' : item.price}</span>
-          <button class="buy-btn" onclick="buyItem('${item.title.replace(/'/g,"\\'")}', '${item.creator.replace(/'/g,"\\'")}')">Buy</button>
+          <button class="buy-btn" onclick="buyItem('${item.id}')">${item.price === '$0' ? 'View' : 'Buy'}</button>
         </div>
       </div>
     `;
@@ -422,8 +476,41 @@ function renderGrid(){
   });
 }
 
-function buyItem(title, creator){
-  showToast(`Redirecting to ${creator}'s PayPal link for "${title}"...`);
+async function buyItem(listingId){
+  const item = listings.find(l => l.id === listingId);
+  let code = null;
+
+  if (item && item.isPrivate) {
+    code = prompt("This listing is private. Enter the access code the creator shared with you:");
+    if (code === null) return; // user cancelled
+  }
+
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/reveal-listing`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listingId, code }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error === 'Incorrect or missing access code'
+        ? 'That access code didn\'t match — ask the creator for the right one.'
+        : (data.error || 'This listing isn\'t available right now.'));
+      return;
+    }
+
+    if (data.mode === 'pay_first') {
+      showToast('Opening the creator\'s PayPal — they\'ll share access with you after payment.');
+      window.open(data.paypal_link, '_blank');
+    } else {
+      showToast(`Opening ${data.source_type} link...`);
+      window.open(data.source_url, '_blank');
+    }
+  } catch (err) {
+    showToast('Something went wrong reaching the listing. Try again shortly.');
+    console.error(err);
+  }
 }
 
 function showToast(msg){
@@ -435,46 +522,127 @@ function showToast(msg){
 }
 
 // source toggle in the listing form
+document.getElementById('monetizeToggle').addEventListener('click', (e) => {
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#monetizeToggle button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  const isPaid = e.target.dataset.monetize === 'paid';
+  document.getElementById('priceField').disabled = !isPaid;
+  document.getElementById('paypalField').style.display = isPaid ? 'block' : 'none';
+});
+
+document.getElementById('accessToggle').addEventListener('click', (e) => {
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#accessToggle button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  const isPrivate = e.target.dataset.access === 'private';
+  document.getElementById('accessCodeInput').style.display = isPrivate ? 'block' : 'none';
+});
+
 document.getElementById('sourceToggle').addEventListener('click', (e) => {
   if(e.target.tagName !== 'BUTTON' || e.target.disabled) return;
   document.querySelectorAll('#sourceToggle button').forEach(b => b.classList.remove('active'));
   e.target.classList.add('active');
 });
 
-document.getElementById('listForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  document.getElementById('listForm').style.display = 'none';
+function detectSourceType(url){
+  const u = url.toLowerCase();
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+  if (u.includes('vimeo.com')) return 'vimeo';
+  if (u.includes('drive.google.com')) return 'drive';
+  if (u.includes('zoom.us')) return 'zoom';
+  return 'drive'; // safe fallback for schema's check constraint
+}
 
-  // Simulated instant automated screening result.
-  // In the real backend this call goes to an AI screening step (title/description/category
-  // checks for copyright red flags, explicit content, spam) that returns in ~1-2 seconds.
-  const roll = Math.random();
+document.getElementById('listForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
   const icon = document.getElementById('confirmIcon');
   const title = document.getElementById('confirmTitle');
   const body = document.getElementById('confirmBody');
 
-  if (roll < 0.8) {
-    icon.textContent = '✓';
-    icon.style.color = 'var(--teal)';
-    title.textContent = 'Approved — instantly live';
-    body.textContent = 'Your reel passed automated screening and is now on the row. Activate your subscription (Starter $9/mo or Pro $24/mo) via PayPal to keep it listed.';
-  } else if (roll < 0.93) {
-    icon.textContent = '✕';
-    icon.style.color = 'var(--danger)';
-    title.textContent = 'Not approved';
-    body.textContent = 'This didn\'t pass automated screening — usually a copyright, licensing, or content policy flag. You can edit the details and resubmit, or contact support if you think this was a mistake.';
-  } else {
-    icon.textContent = '…';
-    icon.style.color = 'var(--amber)';
-    title.textContent = 'Flagged for a quick human check';
-    body.textContent = 'Automated screening couldn\'t confidently decide on this one. It\'s in a short queue for a human to glance at — this affects only a small fraction of submissions, and you\'ll get a decision shortly.';
-  }
+  try {
+    const isPaid = document.querySelector('#monetizeToggle button.active').dataset.monetize === 'paid';
+    const isPrivate = document.querySelector('#accessToggle button.active').dataset.access === 'private';
+    const name = document.getElementById('creatorName').value.trim();
+    const email = document.getElementById('creatorEmail').value.trim();
 
-  document.getElementById('confirmPanel').classList.add('active');
+    // 1. Upsert the creator by email so repeat submitters reuse the same record.
+    const { data: creator, error: creatorError } = await sb
+      .from('creators')
+      .upsert({ name, email, subscription_tier: isPaid ? 'paid' : 'free' }, { onConflict: 'email' })
+      .select()
+      .single();
+
+    if (creatorError) throw creatorError;
+
+    // 2. Insert the listing itself, pending screening.
+    const { data: newListing, error: listingError } = await sb
+      .from('listings')
+      .insert({
+        creator_id: creator.id,
+        title: document.getElementById('titleField').value.trim(),
+        description: document.getElementById('descField').value.trim(),
+        category: document.getElementById('categorySelect').value,
+        source_type: detectSourceType(document.getElementById('sourceUrlField').value.trim()),
+        source_url: document.getElementById('sourceUrlField').value.trim(),
+        price: isPaid ? document.getElementById('priceField').value.trim() : '$0',
+        is_monetized: isPaid,
+        paypal_link: isPaid ? document.getElementById('paypalLinkField').value.trim() : null,
+        is_private: isPrivate,
+        access_code: isPrivate ? document.getElementById('accessCodeField').value.trim() : null,
+      })
+      .select()
+      .single();
+
+    if (listingError) throw listingError;
+
+    // 3. Kick off automated screening — this calls Claude server-side and writes
+    // the decision back onto the listing row.
+    const screenRes = await fetch(`${FUNCTIONS_URL}/screen-submission`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listingId: newListing.id }),
+    });
+    const screenData = await screenRes.json();
+
+    document.getElementById('listForm').style.display = 'none';
+
+    if (screenData.status === 'approved') {
+      icon.textContent = '✓'; icon.style.color = 'var(--teal)';
+      title.textContent = 'Approved — instantly live';
+      body.textContent = isPaid
+        ? 'Your reel passed automated screening and is now on the row. Since you\'re charging buyers, this counts toward the $5/mo unlimited tier — pay via PayPal to keep it listed.'
+        : 'Your reel passed automated screening and is now on the row, free of charge — as long as you\'re not charging buyers, this stays free (up to 50 listings).';
+    } else if (screenData.status === 'rejected') {
+      icon.textContent = '✕'; icon.style.color = 'var(--danger)';
+      title.textContent = 'Not approved';
+      body.textContent = screenData.reason || 'This didn\'t pass automated screening. You can edit the details and resubmit.';
+    } else if (screenData.status === 'held') {
+      icon.textContent = '…'; icon.style.color = 'var(--amber)';
+      title.textContent = 'Under review';
+      body.textContent = 'This submission needs a closer look before it can go live.';
+    } else {
+      icon.textContent = '…'; icon.style.color = 'var(--amber)';
+      title.textContent = 'Flagged for a quick human check';
+      body.textContent = 'Automated screening couldn\'t confidently decide on this one — it\'s in a short queue, and you\'ll get a decision shortly.';
+    }
+
+    document.getElementById('confirmPanel').classList.add('active');
+    loadListings(); // refresh catalog in case it's now approved and live
+  } catch (err) {
+    console.error(err);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit listing';
+    showToast('Something went wrong submitting this — check the console for details and try again.');
+  }
 });
 
 initShelf();
-renderGrid();
+loadListings();
 </script>
 
 </body>
